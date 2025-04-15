@@ -11,8 +11,7 @@ This project is a lightweight, Python-based **Intrusion Detection System (IDS)**
 - Fully customizable and beginner-friendly
 
 
-![Terminal Alert](screenshots/alert-terminal.png)
-![Dashboard View](screenshots/dashboard-view.png)
+
 
 ## 🚀 Demo
 
