@@ -12,6 +12,7 @@ alerts = []
 scan_log = defaultdict(list)
 
 def detect_port_scan(packet):
+    
     global alerts
 
     if packet.haslayer(IP) and packet.haslayer(TCP):
