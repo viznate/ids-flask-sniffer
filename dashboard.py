@@ -16,6 +16,7 @@ def detect_port_scan(packet):
     global alerts
 
     if packet.haslayer(IP) and packet.haslayer(TCP):
+        print(f"[DEBUG] Packet from {packet[IP].src} to {packet[IP].dst} flags={packet[TCP].flags}")
         tcp_flags = packet[TCP].flags
 
         # We're only tracking SYN packets (possible scans)
