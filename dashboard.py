@@ -12,42 +12,28 @@ alerts = []
 scan_log = defaultdict(list)
 
 def detect_port_scan(packet):
-    
-    global alerts
+     global alerts
 
-    if packet.haslayer(IP) and packet.haslayer(TCP):
-        print(f"[DEBUG] Packet from {packet[IP].src} to {packet[IP].dst} flags={packet[TCP].flags}")
-        tcp_flags = packet[TCP].flags
+          if packet.haslayer(IP) and packet.haslayer(TCP):
+               src_ip = packet[IP].src
+               dst_port = packet[TCP].dport
+               flags = packet[TCP].flags
 
-        # We're only tracking SYN packets (possible scans)
-        if tcp_flags == 'S':
-            src_ip = packet[IP].src
-            dst_port = packet[TCP].dport
-            timestamp = time.time()
+               # Print all TCP packets for visibility
+               print(f"[DEBUG] Packet from {src_ip} to {packet[IP].dst} flags={flags}")
 
-            # Initialize src_ip scan log if not exists
-            if src_ip not in scan_log:
-                scan_log[src_ip] = []
+               # Count all unique port accesses within a short tim0
+               timestamp = time.time()
+               scan_log[src_ip].append((dst_port, timestamp))
+               scan_log[src_ip] = [(p, t) for p, t in scan_log[src_ip] if timestamp - t < 5]
+               ports_accessed = set(p for p, _ in scan_log[src_ip])
 
-            # Add port and timestamp to log
-            scan_log[src_ip].append((dst_port, timestamp))
-
-            # Keep only last 5 seconds of traffic
-            scan_log[src_ip] = [(p, t) for p, t in scan_log[src_ip] if timestamp - t < 5]
-            ports_accessed = set(p for p, _ in scan_log[src_ip])
-
-            # Alert if over 10 ports targeted in that time
-            if len(ports_accessed) > 10:
-                readable_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                alert_msg = f"[{readable_time}] Port scan detected from {src_ip} (ports: {sorted(ports_accessed)})"
-                print(alert_msg)
-                alerts.append(alert_msg)
-
-                # Clear log to prevent spamming
-                scan_log[src_ip] = []
-
-
-@app.route('/')
+               if len(ports_accessed) > 10:
+                    readable_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    alert_msg = f"[{readable_time}] Broad port activity from {src_ip} (ports: {sorted(ports_accessed)})"
+                    print(alert_msg)
+                    alerts.append(alert_msg)
+                    scan_log[src_ip] = []te('/')
 def index():
     return render_template('index.html')
 
