@@ -11,38 +11,46 @@ alerts = []
 
 scan_log = defaultdict(list)
 
+
 def detect_port_scan(packet):
-     global alerts
+    global alerts
 
-          if packet.haslayer(IP) and packet.haslayer(TCP):
-               src_ip = packet[IP].src
-               dst_port = packet[TCP].dport
-               flags = packet[TCP].flags
+    if packet.haslayer(IP) and packet.haslayer(TCP):
+        src_ip = packet[IP].src
+        dst_port = packet[TCP].dport
+        flags = packet[TCP].flags
 
-               # Print all TCP packets for visibility
-               print(f"[DEBUG] Packet from {src_ip} to {packet[IP].dst} flags={flags}")
+        # Print all TCP packets for visibility
+        print(
+            f"[DEBUG] Packet from {src_ip} to {
+                packet[IP].dst} flags={flags}")
 
-               # Count all unique port accesses within a short tim0
-               timestamp = time.time()
-               scan_log[src_ip].append((dst_port, timestamp))
-               scan_log[src_ip] = [(p, t) for p, t in scan_log[src_ip] if timestamp - t < 5]
-               ports_accessed = set(p for p, _ in scan_log[src_ip])
+        # Count all unique port accesses within a short tim0
+        timestamp = time.time()
+        scan_log[src_ip].append((dst_port, timestamp))
+        scan_log[src_ip] = [(p, t) for p, t in scan_log[src_ip] if timestamp - t < 5]
+        ports_accessed = set(p for p, _ in scan_log[src_ip])
 
-               if len(ports_accessed) > 10:
-                    readable_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    alert_msg = f"[{readable_time}] Broad port activity from {src_ip} (ports: {sorted(ports_accessed)})"
-                    print(alert_msg)
-                    alerts.append(alert_msg)
-                    scan_log[src_ip] = []te('/')
+        if len(ports_accessed) > 10:
+            readable_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            alert_msg = f"[{readable_time}] Broad port activity from {src_ip} (ports: {sorted(ports_accessed)})"
+            print(alert_msg)
+            alerts.append(alert_msg)
+            scan_log[src_ip] = []
+
+@app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/alerts')
 def get_alerts():
     return jsonify(alerts)
 
+
 def start_sniffer():
     sniff(prn=detect_port_scan, filter="tcp", store=0, iface="eth0")
+
 
 if __name__ == '__main__':
     sniffer_thread = Thread(target=start_sniffer, daemon=True)
