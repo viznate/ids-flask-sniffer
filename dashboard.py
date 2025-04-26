@@ -45,6 +45,12 @@ def index():
 def get_alerts():
     return jsonify(alerts)
 
+@app.route('/clear_alerts',methods=['POST'])
+def clear_alerts():
+    global alerts
+    alerts = []
+    return jsonify({"status": "cleared"})
+
 
 def start_sniffer():
     sniff(prn=detect_port_scan, iface="eth0", store=0)
