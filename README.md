@@ -32,12 +32,7 @@ bash
 Copy
 Edit
 nmap -sT -p 1-1000 -Pn <target_IP_address>
-Example:
 
-bash
-Copy
-Edit
-nmap -sT -p 1-1000 -Pn 192.168.1.66
 📢 If using Termux or another limited environment, use -sT (TCP Connect Scan) since -sS (Stealth Scan) requires root.
 
 🛠 Installation and Setup
