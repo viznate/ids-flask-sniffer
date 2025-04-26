@@ -267,3 +267,5 @@ webencodings==0.5.1
 Werkzeug==3.0.1
 wheel==0.42.0
 zope.interface==6.1
+flask
+scapy
