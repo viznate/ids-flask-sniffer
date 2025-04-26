@@ -1,88 +1,110 @@
-
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<title> Live IDS Dashboard </title>
-	<meta http-equiv="refresh" content="1800">
-	<style>
-		body{
-			font-family:Arial, sans-serif;
-			padding:20px;
-			background-color: #1e1e1e;
-			color:#fff;
-		}
+    <meta charset="UTF-8">
+    <title>Intrusion Detection Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #fff;
+        }
 
-		h1 {
-			color:#00ffcc;
-		}
-		.alert{
-			padding: 10px;
-			margin-bottom: 10px;
-			background-color: #ff4444;
-			border-left: 5px solid #ff0000;
-		}
-               .clear-button{
-			background-color: #00ffcc;
-			color: #1e1e1e;
-			padding: 10px 20px;
-			border: none;
-			border-radius: 8px;
-			cursor: pointer;
-			font-size: 16px;
-			font-weight: bold;
-			transition: background-color 0.3s, transform 0.2s;
-			margin-bottom: 20px;
-	       }
-               .clear-button:hover {
-			background-color" #00cc99;;
-			transform: scale(1.05);
-	       }
-	</style>
+        h1 {
+            color: #00ffcc;
+        }
+
+        .alert {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 5px solid;
+            border-radius: 5px;
+        }
+
+        .low {
+            background-color: #2e7d32; /* Green */
+            border-color: #1b5e20;
+        }
+
+        .medium {
+            background-color: #f9a825; /* Yellow */
+            border-color: #f57f17;
+        }
+
+        .high {
+            background-color: #c62828; /* Red */
+            border-color: #b71c1c;
+        }
+
+        .external-badge {
+            background-color: #00bcd4;
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-left: 8px;
+        }
+
+        #clear-button {
+            background-color: #ff4444;
+            border: none;
+            padding: 10px 15px;
+            color: white;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        #clear-button:hover {
+            background-color: #cc0000;
+        }
+    </style>
 </head>
+
 <body>
-	<h1> Intrusion Detection Alerts </h1>
-        <form action="/clear_alerts" method="post">
-                <button type="submit"> Clear Alerts</button>
-        </form>
-	<div id ="alerts">
-		Loading alerts ...
-	</div>
+    <h1>Intrusion Detection System Dashboard</h1>
 
-	<script>
-		async function loadAlerts() {
-			try {
-				const response = await fetch("/alerts");
-				const data = await response.json();
-				const alertDiv = document.getElementById("alerts");
+    <button id="clear-button" onclick="clearAlerts()">Clear Alerts</button>
 
-				alertDiv.innerHTML = "";
+    <div id="alerts-container">
+        <!-- Alerts will appear here -->
+    </div>
 
-				if (data.length === 0) {
-					alertDiv.innerHTML = "No alerts yet.";
-					return;
-				}
+    <script>
+        async function fetchAlerts() {
+            const response = await fetch('/alerts');
+            const alerts = await response.json();
 
-				data.slice(-10).reverse().forEach(alert => {
-					const div = document.createElement("div");
-					div.className = "alert";
+            const container = document.getElementById('alerts-container');
+            container.innerHTML = '';
 
-					const [timePart, messagePart] = alert.split("] ");
-					const timeFormatted = `<span style="font-size: 0.9em; color: #cccccc;">[${timePart}]</span>`;
-					const messageFormatted = `<strong style="font-size: 1.1em;">${messagePart}</strong>`;
+            if (alerts.length === 0) {
+                container.innerHTML = '<p>No alerts yet.</p>';
+                return;
+            }
 
-					div.innerHTML = `${timeFormatted}<br>${messageFormatted}`;
-					alertDiv.appendChild(div);
-				});
-			} catch(err) {
-				console.error("Failed to fetch alerts:", err);
-				document.getElementById("alerts").textContent = "Error loading alerts.";
-			}
-		}
+            alerts.forEach(alert => {
+                const div = document.createElement('div');
+                div.className = `alert ${alert.severity}`;
 
-		loadAlerts();
-		setInterval(loadAlerts, 5000);
-	</script>
+                div.innerHTML = `
+                    <strong>[${alert.time}]</strong> Activity from ${alert.src_ip}
+                    ${!alert.internal ? '<span class="external-badge">External</span>' : ''}
+                    on ports: ${alert.ports.join(', ')}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function clearAlerts() {
+            await fetch('/clear_alerts', { method: 'POST' });
+            await fetchAlerts();
+        }
+
+        setInterval(fetchAlerts, 3000); // Refresh every 3 seconds
+        fetchAlerts();
+    </script>
 </body>
 </html>
-
