@@ -77,10 +77,11 @@ def clear_alerts():
 
 
 def start_sniffer():
-    sniff(prn=detect_port_scan, store=0)
+    sniff(filter="tcp and dst host 129.113.42.168", prn=detect_port_scan, store=0)
+
 
 
 if __name__ == '__main__':
     sniffer_thread = Thread(target=start_sniffer, daemon=True)
     sniffer_thread.start()
-    app.run(debug=True, host="0.0.0.0")
+    app.run(debug=True, host="0.0.0.0", port=5000)
